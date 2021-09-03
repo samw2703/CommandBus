@@ -4,7 +4,7 @@ namespace CommandBus
 {
 	internal class NoCommandsRegistered<TCommand> : Exception
 	{
-		public NoCommandsRegistered(TCommand command) : base($"No commands of type {command.GetType().FullName} registered")
+		public NoCommandsRegistered() : base($"No commands of type {typeof(TCommand).FullName} registered")
 		{
 		}
 	}

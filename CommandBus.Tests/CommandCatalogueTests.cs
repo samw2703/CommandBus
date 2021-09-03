@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -11,7 +10,7 @@ namespace CommandBus.Tests
 		[Test]
 		public void GetValidator_ItemDoesNotExistForCommand_ThrowsNoCommandException()
 		{
-			Assert.Throws<NoCommandsRegistered<TestCommand>>(() => GetValidator(new TestCommand()));
+			Assert.Throws<NoCommandsRegistered<TestCommand>>(() => GetValidator<TestCommand, NoCommandResult>());
 		}
 
 		[Test]
@@ -22,7 +21,7 @@ namespace CommandBus.Tests
 				new CommandWithResultCatalogueItem<TestCommand, NoCommandResult>(typeof(TestCommand), null, new TestCommandHandler()),
 				new CommandWithResultCatalogueItem<TestCommand, NoCommandResult>(typeof(TestCommand), null, new TestCommandHandler())
 			};
-			Assert.Throws<MutlipleCommandsRegistered<TestCommand>>(() => GetValidator(new TestCommand(), items));
+			Assert.Throws<MutlipleCommandsRegistered<TestCommand>>(() => GetValidator<TestCommand, NoCommandResult>(items));
 		}
 
 		[Test]
@@ -32,7 +31,7 @@ namespace CommandBus.Tests
 			{
 				new CommandWithResultCatalogueItem<TestCommand, NoCommandResult>(typeof(TestCommand), null, new TestCommandHandler())
 			};
-			var validator = GetValidator(new TestCommand(), items);
+			var validator = GetValidator<TestCommand, NoCommandResult>(items);
 
 			Assert.IsNull(validator);
 		}
@@ -44,15 +43,25 @@ namespace CommandBus.Tests
 			{
 				new CommandWithResultCatalogueItem<TestCommand, NoCommandResult>(typeof(TestCommand), new TestCommandValidator(), new TestCommandHandler())
 			};
-			var validator = GetValidator(new TestCommand(), items);
+			var validator = GetValidator<TestCommand, NoCommandResult>(items);
 
 			Assert.AreEqual(typeof(TestCommandValidator), validator.GetType());
 		}
 
 		[Test]
+		public void GetValidator_SingleItemExistsForCommandButCommandHandlerDoesNotReturnSpecifiedCommandResult_ThrowsCommandResultMismatchException()
+		{
+			var items = new List<CommandCatalogueItem>
+			{
+				new CommandWithResultCatalogueItem<TestCommand, NoCommandResult>(typeof(TestCommand), null, new TestCommandHandler()),
+			};
+			Assert.Throws<CommandResultMismatch<TestCommand, TestCommandResult>>(() => GetValidator<TestCommand, TestCommandResult>(items));
+		}
+
+		[Test]
 		public void GetCommandHandler_ItemDoesNotExistForCommand_ThrowsNoCommandException()
 		{
-			Assert.Throws<NoCommandsRegistered<TestCommand>>(() => GetCommandHandler<TestCommand, NoCommandResult>(new TestCommand()));
+			Assert.Throws<NoCommandsRegistered<TestCommand>>(() => GetCommandHandler<TestCommand, NoCommandResult>());
 		}
 
 		[Test]
@@ -63,7 +72,7 @@ namespace CommandBus.Tests
 				new CommandWithResultCatalogueItem<TestCommand, NoCommandResult>(typeof(TestCommand), null, new TestCommandHandler()),
 				new CommandWithResultCatalogueItem<TestCommand, NoCommandResult>(typeof(TestCommand), null, new TestCommandHandler())
 			};
-			Assert.Throws<MutlipleCommandsRegistered<TestCommand>>(() => GetCommandHandler<TestCommand, NoCommandResult>(new TestCommand(), items));
+			Assert.Throws<MutlipleCommandsRegistered<TestCommand>>(() => GetCommandHandler<TestCommand, NoCommandResult>(items));
 		}
 
 		[Test]
@@ -73,7 +82,7 @@ namespace CommandBus.Tests
 			{
 				new CommandWithResultCatalogueItem<TestCommand, NoCommandResult>(typeof(TestCommand), null, new TestCommandHandler()),
 			};
-			Assert.Throws<CommandResultMismatch<TestCommand, TestCommandResult>>(() => GetCommandHandler<TestCommand, TestCommandResult>(new TestCommand(), items));
+			Assert.Throws<CommandResultMismatch<TestCommand, TestCommandResult>>(() => GetCommandHandler<TestCommand, TestCommandResult>(items));
 		}
 
 		[Test]
@@ -83,21 +92,21 @@ namespace CommandBus.Tests
 			{
 				new CommandWithResultCatalogueItem<TestCommand, NoCommandResult>(typeof(TestCommand), null, new TestCommandHandler()),
 			};
-			var commandHandler =  GetCommandHandler<TestCommand, NoCommandResult>(new TestCommand(), items);
+			var commandHandler =  GetCommandHandler<TestCommand, NoCommandResult>(items);
 
 			Assert.AreEqual(typeof(TestCommandHandler), commandHandler.GetType());
 		}
 
-		private Validator<TCommand> GetValidator<TCommand>(TCommand command, List<CommandCatalogueItem> items = null)
+		private Validator<TCommand> GetValidator<TCommand, TCommandResult>(List<CommandCatalogueItem> items = null)
 		{
 			return new CommandCatalogue(items ?? new List<CommandCatalogueItem>())
-				.GetValidator(command);
+				.GetValidator<TCommand, TCommandResult>();
 		}
 
-		private CommandHandler<TCommand, TCommandResult> GetCommandHandler<TCommand, TCommandResult>(TCommand command, List<CommandCatalogueItem> items = null)
+		private CommandHandler<TCommand, TCommandResult> GetCommandHandler<TCommand, TCommandResult>(List<CommandCatalogueItem> items = null)
 		{
 			return new CommandCatalogue(items ?? new List<CommandCatalogueItem>())
-				.GetCommandHandler<TCommand, TCommandResult>(command);
+				.GetCommandHandler<TCommand, TCommandResult>();
 		}
 
 		private class TestCommand
@@ -120,16 +129,7 @@ namespace CommandBus.Tests
 			}
 		}
 
-		private class TestCommandHandler2 : CommandHandler<TestCommand, TestCommandResult>
-		{
-			public override Task<TestCommandResult> HandleAndGetResult(TestCommand command)
-			{
-				return Task.FromResult(new TestCommandResult());
-			}
-		}
-
 		private class TestCommandResult
-
 		{
 		}
 	}

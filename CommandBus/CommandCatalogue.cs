@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace CommandBus
@@ -13,47 +12,27 @@ namespace CommandBus
 			_items = items ?? new List<CommandCatalogueItem>();
 		}
 
-		public Validator<TCommand> GetValidator<TCommand>(TCommand command)
+		public Validator<TCommand> GetValidator<TCommand, TCommandResult>()
+			=> GetItem<TCommand, TCommandResult>().Validator;
+
+		public CommandHandler<TCommand, TCommandResult> GetCommandHandler<TCommand, TCommandResult>()
+			=> GetItem<TCommand, TCommandResult>().CommandHandler;
+
+		private CommandWithResultCatalogueItem<TCommand, TCommandResult> GetItem<TCommand, TCommandResult>()
 		{
-			var item = GetItem(command);
-
-			return GetValidator<TCommand>(item);
-		}
-
-		public CommandHandler<TCommand, TCommandResult> GetCommandHandler<TCommand, TCommandResult>(TCommand command)
-		{
-			var item = GetItem(command);
-
-			return GetCommandHandler<TCommand, TCommandResult>(item);
-		}
-
-		private CommandHandler<TCommand, TCommandResult> GetCommandHandler<TCommand, TCommandResult>(CommandCatalogueItem item)
-		{
-			try
-			{
-				return ((CommandWithResultCatalogueItem<TCommand, TCommandResult>) item)
-					.CommandHandler;
-			}
-			catch (InvalidCastException)
-			{
-				throw new CommandResultMismatch<TCommand, TCommandResult>();
-			}
-		}
-
-		private Validator<TCommand> GetValidator<TCommand>(CommandCatalogueItem item)
-			=> ((CommandWithValidatorCatalogueItem<TCommand>) item).Validator;
-
-		private CommandCatalogueItem GetItem<TCommand>(TCommand command)
-		{
-			var items = _items.Where(x => x.CommandType == command.GetType()).ToList();
+			var items = _items.Where(x => x.CommandType == typeof(TCommand)).ToList();
 
 			if (items.Count > 1)
-				throw new MutlipleCommandsRegistered<TCommand>(command);
+				throw new MutlipleCommandsRegistered<TCommand>();
 
 			if (items.None())
-				throw new NoCommandsRegistered<TCommand>(command);
+				throw new NoCommandsRegistered<TCommand>();
 
-			return items.Single();
+			var item = items.Single() as CommandWithResultCatalogueItem<TCommand, TCommandResult>;
+			if (item == null)
+				throw new CommandResultMismatch<TCommand, TCommandResult>();
+
+			return item;
 		}
 	}
 }

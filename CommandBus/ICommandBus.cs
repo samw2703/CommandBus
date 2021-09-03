@@ -6,16 +6,18 @@ namespace CommandBus
 	public interface ICommandBus
 	{
 		Task<CommandBusResult<TCommandResult>> Execute<TCommand, TCommandResult>(TCommand command) where TCommandResult : class;
+		Task<CommandBusResult<NoCommandResult>> Execute<TCommand>(TCommand command);
 	}
 
 	internal class CommandBus : ICommandBus
 	{
 		private readonly EventPublisher _eventPublisher;
+		private readonly CommandCatalogue _commandCatalogue;
 
 		public async Task<CommandBusResult<TCommandResult>> Execute<TCommand, TCommandResult>(TCommand command)
 			where TCommandResult : class
 		{
-			var validationResult = await Validate(command);
+			var validationResult = await Validate<TCommand, TCommandResult>(command);
 			if (validationResult.Invalid)
 				return CommandBusResult<TCommandResult>.AsValidationResult(validationResult);
 
@@ -23,6 +25,9 @@ namespace CommandBus
 
 			return CommandBusResult<TCommandResult>.AsCommandResult(commandResult);
 		}
+
+		public async Task<CommandBusResult<NoCommandResult>> Execute<TCommand>(TCommand command)
+			=> await Execute<TCommand, NoCommandResult>(command);
 
 		private async Task<TCommandResult> HandleAndRaiseEvents<TCommand, TCommandResult>(TCommand command)
 		{
@@ -33,19 +38,17 @@ namespace CommandBus
 			return commandResult;
 		}
 
-		private async Task<ValidationResult> Validate<TCommand>(TCommand command)
+		private async Task<ValidationResult> Validate<TCommand, TCommandResult>(TCommand command)
 		{
-			var validator = GetValidator(command);
+			var validator = GetValidator<TCommand, TCommandResult>();
 
 			return validator == null
 				? ValidationResult.Success()
 				: await validator.DoValidation(command);
 		}
 
-		private Validator<TCommand> GetValidator<TCommand>(TCommand command)
-		{
-			throw new System.NotImplementedException();
-		}
+		private Validator<TCommand> GetValidator<TCommand, TCommandResult>()
+			=> _commandCatalogue.GetValidator<TCommand, TCommandResult>();
 
 		private void RaiseAndFlushEvents<TCommand, TCommandResult>(CommandHandler<TCommand, TCommandResult> commandHandler)
 		{
@@ -54,14 +57,7 @@ namespace CommandBus
 		}
 
 		private CommandHandler<TCommand, TCommandResult> GetCommandHandler<TCommand, TCommandResult>()
-		{
-			throw new System.NotImplementedException();
-		}
-
-		public Task<ValidationResult> Execute<TCommand>(TCommand command)
-		{
-			throw new System.NotImplementedException();
-		}
+			=> _commandCatalogue.GetCommandHandler<TCommand, TCommandResult>();
 	}
 
 	internal class EventPublisher
