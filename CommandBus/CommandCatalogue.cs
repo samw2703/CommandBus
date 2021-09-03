@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace CommandBus
 {
-	internal class CommandCatalogue
+	internal class CommandCatalogue : ICommandCatalogue
 	{
 		private readonly List<CommandCatalogueItem> _items;
 

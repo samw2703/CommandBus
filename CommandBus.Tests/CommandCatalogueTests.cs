@@ -18,8 +18,8 @@ namespace CommandBus.Tests
 		{
 			var items = new List<CommandCatalogueItem>
 			{
-				new CommandWithResultCatalogueItem<TestCommand, NoCommandResult>(typeof(TestCommand), null, new TestCommandHandler()),
-				new CommandWithResultCatalogueItem<TestCommand, NoCommandResult>(typeof(TestCommand), null, new TestCommandHandler())
+				new CommandWithResultCatalogueItem<TestCommand, NoCommandResult>(typeof(TestCommand), null, new NoResultTestCommandHandler()),
+				new CommandWithResultCatalogueItem<TestCommand, NoCommandResult>(typeof(TestCommand), null, new NoResultTestCommandHandler())
 			};
 			Assert.Throws<MutlipleCommandsRegistered<TestCommand>>(() => GetValidator<TestCommand, NoCommandResult>(items));
 		}
@@ -29,7 +29,7 @@ namespace CommandBus.Tests
 		{
 			var items = new List<CommandCatalogueItem>
 			{
-				new CommandWithResultCatalogueItem<TestCommand, NoCommandResult>(typeof(TestCommand), null, new TestCommandHandler())
+				new CommandWithResultCatalogueItem<TestCommand, NoCommandResult>(typeof(TestCommand), null, new NoResultTestCommandHandler())
 			};
 			var validator = GetValidator<TestCommand, NoCommandResult>(items);
 
@@ -41,7 +41,7 @@ namespace CommandBus.Tests
 		{
 			var items = new List<CommandCatalogueItem>
 			{
-				new CommandWithResultCatalogueItem<TestCommand, NoCommandResult>(typeof(TestCommand), new TestCommandValidator(), new TestCommandHandler())
+				new CommandWithResultCatalogueItem<TestCommand, NoCommandResult>(typeof(TestCommand), new TestCommandValidator(), new NoResultTestCommandHandler())
 			};
 			var validator = GetValidator<TestCommand, NoCommandResult>(items);
 
@@ -53,7 +53,7 @@ namespace CommandBus.Tests
 		{
 			var items = new List<CommandCatalogueItem>
 			{
-				new CommandWithResultCatalogueItem<TestCommand, NoCommandResult>(typeof(TestCommand), null, new TestCommandHandler()),
+				new CommandWithResultCatalogueItem<TestCommand, NoCommandResult>(typeof(TestCommand), null, new NoResultTestCommandHandler()),
 			};
 			Assert.Throws<CommandResultMismatch<TestCommand, TestCommandResult>>(() => GetValidator<TestCommand, TestCommandResult>(items));
 		}
@@ -69,8 +69,8 @@ namespace CommandBus.Tests
 		{
 			var items = new List<CommandCatalogueItem>
 			{
-				new CommandWithResultCatalogueItem<TestCommand, NoCommandResult>(typeof(TestCommand), null, new TestCommandHandler()),
-				new CommandWithResultCatalogueItem<TestCommand, NoCommandResult>(typeof(TestCommand), null, new TestCommandHandler())
+				new CommandWithResultCatalogueItem<TestCommand, NoCommandResult>(typeof(TestCommand), null, new NoResultTestCommandHandler()),
+				new CommandWithResultCatalogueItem<TestCommand, NoCommandResult>(typeof(TestCommand), null, new NoResultTestCommandHandler())
 			};
 			Assert.Throws<MutlipleCommandsRegistered<TestCommand>>(() => GetCommandHandler<TestCommand, NoCommandResult>(items));
 		}
@@ -80,7 +80,7 @@ namespace CommandBus.Tests
 		{
 			var items = new List<CommandCatalogueItem>
 			{
-				new CommandWithResultCatalogueItem<TestCommand, NoCommandResult>(typeof(TestCommand), null, new TestCommandHandler()),
+				new CommandWithResultCatalogueItem<TestCommand, NoCommandResult>(typeof(TestCommand), null, new NoResultTestCommandHandler()),
 			};
 			Assert.Throws<CommandResultMismatch<TestCommand, TestCommandResult>>(() => GetCommandHandler<TestCommand, TestCommandResult>(items));
 		}
@@ -90,11 +90,11 @@ namespace CommandBus.Tests
 		{
 			var items = new List<CommandCatalogueItem>
 			{
-				new CommandWithResultCatalogueItem<TestCommand, NoCommandResult>(typeof(TestCommand), null, new TestCommandHandler()),
+				new CommandWithResultCatalogueItem<TestCommand, NoCommandResult>(typeof(TestCommand), null, new NoResultTestCommandHandler()),
 			};
 			var commandHandler =  GetCommandHandler<TestCommand, NoCommandResult>(items);
 
-			Assert.AreEqual(typeof(TestCommandHandler), commandHandler.GetType());
+			Assert.AreEqual(typeof(NoResultTestCommandHandler), commandHandler.GetType());
 		}
 
 		private Validator<TCommand> GetValidator<TCommand, TCommandResult>(List<CommandCatalogueItem> items = null)
@@ -121,7 +121,7 @@ namespace CommandBus.Tests
 			}
 		}
 
-		private class TestCommandHandler : NoResultCommandHandler<TestCommand>
+		private class NoResultTestCommandHandler : NoResultCommandHandler<TestCommand>
 		{
 			public override Task Handle(TestCommand command)
 			{

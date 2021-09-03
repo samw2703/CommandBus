@@ -62,6 +62,10 @@
             "coverlet.collector": {
               "target": "Package",
               "version": "[3.0.2, )"
+            },
+            "moq": {
+              "target": "Package",
+              "version": "[4.16.1, )"
             }
           },
           "imports": [
