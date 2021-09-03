@@ -1,0 +1,10 @@
+C:\Informal\Projects\CommandBus\src\CommandBus\obj\Debug\netstandard2.1\CommandBus.csproj.AssemblyReference.cache
+C:\Informal\Projects\CommandBus\src\CommandBus\obj\Debug\netstandard2.1\CommandBus.GeneratedMSBuildEditorConfig.editorconfig
+C:\Informal\Projects\CommandBus\src\CommandBus\obj\Debug\netstandard2.1\CommandBus.AssemblyInfoInputs.cache
+C:\Informal\Projects\CommandBus\src\CommandBus\obj\Debug\netstandard2.1\CommandBus.AssemblyInfo.cs
+C:\Informal\Projects\CommandBus\src\CommandBus\obj\Debug\netstandard2.1\CommandBus.csproj.CoreCompileInputs.cache
+C:\Informal\Projects\CommandBus\src\CommandBus\bin\Debug\netstandard2.1\CommandBus.deps.json
+C:\Informal\Projects\CommandBus\src\CommandBus\bin\Debug\netstandard2.1\CommandBus.dll
+C:\Informal\Projects\CommandBus\src\CommandBus\bin\Debug\netstandard2.1\CommandBus.pdb
+C:\Informal\Projects\CommandBus\src\CommandBus\obj\Debug\netstandard2.1\CommandBus.dll
+C:\Informal\Projects\CommandBus\src\CommandBus\obj\Debug\netstandard2.1\CommandBus.pdb
