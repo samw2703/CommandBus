@@ -84,7 +84,7 @@ namespace CommandBus.Tests
 		{
 			private readonly List<object> _events = new List<object>();
 
-			public void Publish(List<object> events)
+			public async Task Publish(List<object> events)
 				=> _events.AddRange(events);
 
 			public bool CountEquals(int expectedCount)
