@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace CommandBus
@@ -12,8 +13,11 @@ namespace CommandBus
 			_items = items ?? new List<CommandCatalogueItem>();
 		}
 
-		public Validator<TCommand> GetValidator<TCommand, TCommandResult>()
-			=> GetItem<TCommand, TCommandResult>().Validator;
+		public bool CommandExists<TCommand>()
+			=> _items.Any(x => x.CommandType == typeof(TCommand));
+
+		public Type GetValidatorType<TCommand, TCommandResult>()
+			=> GetItem<TCommand, TCommandResult>().ValidatorType;
 
 		public CommandHandler<TCommand, TCommandResult> GetCommandHandler<TCommand, TCommandResult>()
 			=> GetItem<TCommand, TCommandResult>().CommandHandler;
@@ -26,7 +30,7 @@ namespace CommandBus
 				throw new MutlipleCommandsRegistered<TCommand>();
 
 			if (items.None())
-				throw new NoCommandsRegistered<TCommand>();
+				throw new NoCommandRegistered<TCommand>();
 
 			var item = items.Single() as CommandWithResultCatalogueItem<TCommand, TCommandResult>;
 			if (item == null)

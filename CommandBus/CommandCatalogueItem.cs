@@ -5,30 +5,21 @@ namespace CommandBus
 	internal abstract class CommandCatalogueItem
 	{
 		public Type CommandType { get; }
+		public Type ValidatorType { get; }
 
-		protected CommandCatalogueItem(Type commandType)
+		protected CommandCatalogueItem(Type commandType, Type validatorType)
 		{
 			CommandType = commandType;
+			ValidatorType = validatorType;
 		}
 	}
 
-	internal abstract class CommandWithValidatorCatalogueItem<TCommand> : CommandCatalogueItem
-	{
-		public Validator<TCommand> Validator { get; }
-
-		protected CommandWithValidatorCatalogueItem(Type commandType, Validator<TCommand> validator) 
-			: base(commandType)
-		{
-			Validator = validator;
-		}
-	}
-
-	internal class CommandWithResultCatalogueItem<TCommand, TResult> : CommandWithValidatorCatalogueItem<TCommand>
+	internal class CommandWithResultCatalogueItem<TCommand, TResult> : CommandCatalogueItem
 	{
 		public CommandHandler<TCommand, TResult> CommandHandler { get; }
 
-		public CommandWithResultCatalogueItem(Type commandType, Validator<TCommand> validator, CommandHandler<TCommand, TResult> commandHandler) 
-			: base(commandType, validator)
+		public CommandWithResultCatalogueItem(Type commandType, Type validatorType, CommandHandler<TCommand, TResult> commandHandler) 
+			: base(commandType, validatorType)
 		{
 			CommandHandler = commandHandler;
 		}

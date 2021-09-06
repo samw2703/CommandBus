@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 namespace CommandBus
 {
@@ -6,16 +7,20 @@ namespace CommandBus
 	{
 		private readonly IEventPublisher _eventPublisher;
 		private readonly ICommandCatalogue _commandCatalogue;
+		private readonly IServiceProvider _serviceProvider;
 
-		public CommandBus(IEventPublisher eventPublisher, ICommandCatalogue commandCatalogue)
+		public CommandBus(IEventPublisher eventPublisher, ICommandCatalogue commandCatalogue, IServiceProvider serviceProvider)
 		{
 			_eventPublisher = eventPublisher;
 			_commandCatalogue = commandCatalogue;
+			_serviceProvider = serviceProvider;
 		}
 
 		public async Task<CommandBusResult<TCommandResult>> Execute<TCommand, TCommandResult>(TCommand command)
 			where TCommandResult : class
 		{
+			if (!_commandCatalogue.CommandExists<TCommand>())
+				throw new NoCommandRegistered<TCommand>();
 			var validationResult = await Validate<TCommand, TCommandResult>(command);
 			if (validationResult.Invalid)
 				return CommandBusResult<TCommandResult>.AsValidationResult(validationResult);
@@ -47,7 +52,13 @@ namespace CommandBus
 		}
 
 		private Validator<TCommand> GetValidator<TCommand, TCommandResult>()
-			=> _commandCatalogue.GetValidator<TCommand, TCommandResult>();
+		{
+			var validatorType = _commandCatalogue.GetValidatorType<TCommand, TCommandResult>();
+			if (validatorType == null)
+				return null;
+
+			return (Validator<TCommand>)_serviceProvider.GetService(validatorType);
+		}
 
 		private void RaiseAndFlushEvents<TCommand, TCommandResult>(CommandHandler<TCommand, TCommandResult> commandHandler)
 		{

@@ -1,8 +1,11 @@
-﻿namespace CommandBus
+﻿using System;
+
+namespace CommandBus
 {
 	internal interface ICommandCatalogue
 	{
-		Validator<TCommand> GetValidator<TCommand, TCommandResult>();
+		bool CommandExists<TCommand>();
+		Type GetValidatorType<TCommand, TCommandResult>();
 		CommandHandler<TCommand, TCommandResult> GetCommandHandler<TCommand, TCommandResult>();
 	}
 }
