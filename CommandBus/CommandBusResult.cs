@@ -27,25 +27,4 @@
 		internal static CommandBusResult<TCommandResult> AsValidationResult(ValidationResult validationResult)
 			=> new CommandBusResult<TCommandResult>(validationResult, null, true);
 	}
-
-	public class CommandBusResult
-	{
-		private readonly ValidationResult _validationResult;
-		public bool IsInvalid { get; }
-
-		private CommandBusResult(ValidationResult validationResult, bool isInvalid)
-		{
-			_validationResult = validationResult;
-			IsInvalid = isInvalid;
-		}
-
-		public ValidationResult AsValidationResult()
-			=> _validationResult;
-
-		internal static CommandBusResult AsCommandResult()
-			=> new CommandBusResult(null, false);
-
-		internal static CommandBusResult AsValidationResult(ValidationResult validationResult)
-			=> new CommandBusResult(validationResult, true);
-	}
 }
