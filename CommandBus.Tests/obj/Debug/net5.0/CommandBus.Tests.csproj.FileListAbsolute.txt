@@ -104,3 +104,5 @@ C:\Informal\Projects\CommandBus\src\CommandBus.Tests\obj\Debug\net5.0\CommandBus
 C:\Informal\Projects\CommandBus\src\CommandBus.Tests\obj\Debug\net5.0\CommandBus.Tests.genruntimeconfig.cache
 C:\Informal\Projects\CommandBus\src\CommandBus.Tests\bin\Debug\net5.0\Castle.Core.dll
 C:\Informal\Projects\CommandBus\src\CommandBus.Tests\bin\Debug\net5.0\Moq.dll
+C:\Informal\Projects\CommandBus\src\CommandBus.Tests\bin\Debug\net5.0\Microsoft.Extensions.DependencyInjection.dll
+C:\Informal\Projects\CommandBus\src\CommandBus.Tests\bin\Debug\net5.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll
