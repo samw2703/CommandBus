@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 
 namespace CommandBus.Tests
@@ -12,7 +11,7 @@ namespace CommandBus.Tests
 		[Test]
 		public void GetSubscribers_NoSubscriberMatchObjectType_ReturnsEmptyList()
 		{
-			var subscribers = GetSubscribers<object>();
+			var subscribers = GetSubscribers(new { });
 
 			Assert.True(subscribers.None());
 		}
@@ -20,14 +19,14 @@ namespace CommandBus.Tests
 		[Test]
 		public void GetSubscribers_MultipleSubscriberMatchesObjectType_ReturnsListOfSubscribers()
 		{
-			var subscribers = GetSubscribers<Event1>();
+			var subscribers = GetSubscribers(new Event1());
 
 			Assert.AreEqual(2, subscribers.Count);
-			Assert.IsNotNull(subscribers.SingleOrDefault(x => x.GetType() == typeof(EventSubscriber11)));
-			Assert.IsNotNull(subscribers.SingleOrDefault(x => x.GetType() == typeof(EventSubscriber12)));
+			Assert.IsNotNull(subscribers.SingleOrDefault(x => x == typeof(EventSubscriber11)));
+			Assert.IsNotNull(subscribers.SingleOrDefault(x => x == typeof(EventSubscriber12)));
 		}
 
-		private List<IEventSubscriber<T>> GetSubscribers<T>()
+		private List<Type> GetSubscribers(object @event)
 		{
 			var items = new List<EventSubscriptionsCatalogueItem>
 			{
@@ -35,17 +34,8 @@ namespace CommandBus.Tests
 				new EventSubscriptionsCatalogueItem(typeof(Event1), typeof(EventSubscriber12)),
 				new EventSubscriptionsCatalogueItem(typeof(Event2), typeof(EventSubscriber21))
 			}; 
-			return new EventSubscriptionsCatalogue(items, BuildServiceProvider())
-				.GetSubscribers<T>();
-		}
-
-		private IServiceProvider BuildServiceProvider()
-		{
-			var serviceCollection = new ServiceCollection();
-			serviceCollection.AddSingleton<EventSubscriber11>();
-			serviceCollection.AddSingleton<EventSubscriber12>();
-			serviceCollection.AddSingleton<EventSubscriber21>();
-			return serviceCollection.BuildServiceProvider();
+			return new EventSubscriptionsCatalogue(items)
+				.GetSubscribers(@event);
 		}
 
 		private class Event1
