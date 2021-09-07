@@ -7,6 +7,13 @@ namespace CommandBus
 {
 	internal class CommandCatalogueBuilder
 	{
+		private readonly InheritanceTreeProvider _inheritanceTreeProvider;
+
+		public CommandCatalogueBuilder()
+		{
+			_inheritanceTreeProvider = new InheritanceTreeProvider();
+		}
+
 		public CommandCatalogue Build(params Assembly[] assemblies)
 		{
 			var handlerDtos = GetHandlerDtos(assemblies);
@@ -58,7 +65,7 @@ namespace CommandBus
 		{
 			if (type.IsNested)
 				return null;
-			var inheritanceTree = GetInheritanceTree(type);
+			var inheritanceTree = _inheritanceTreeProvider.Get(type);
 			var validatorType = inheritanceTree.SingleOrDefault(IsAbstractValidator);
 			if (validatorType == null)
 				return null;
@@ -87,7 +94,7 @@ namespace CommandBus
 		{
 			if (type.IsNested)
 				return null;
-			var inheritanceTree = GetInheritanceTree(type);
+			var inheritanceTree = _inheritanceTreeProvider.Get(type);
 			var commandHandlerType = inheritanceTree.SingleOrDefault(IsAbstractCommandHandler);
 			if (commandHandlerType == null)
 				return null;
@@ -101,23 +108,6 @@ namespace CommandBus
 				return false;
 
 			return type.GetGenericTypeDefinition() == typeof(CommandHandler<object, object>).GetGenericTypeDefinition();
-		}
-
-		private List<Type> GetInheritanceTree(Type type)
-		{
-			var inheritanceTree = new List<Type>();
-			var baseType = type.BaseType;
-			while (true)
-			{
-				if (baseType == typeof(object))
-					break;
-
-				inheritanceTree.Add(baseType);
-
-				baseType = baseType.BaseType;
-			}
-
-			return inheritanceTree;
 		}
 
 		private class HandlerDto
