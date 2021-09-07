@@ -1,52 +1,54 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using NUnit.Framework.Internal;
 
 namespace CommandBus.Tests
 {
-	public class CommandCatalogueBuilderTests
+	public class CommandCatalogueItemsProviderTests
 	{
 		[Test]
 		public void Build_ForCommandWithResult_RetrievesCommandHandler()
 		{
-			var commandHandlerType = Build()
-				.GetCommandHandlerType<TestCommand>();
+			var catalogueItem = Get()
+				.Single(x => x.CommandType == typeof(TestCommand));
 
-			Assert.AreEqual(typeof(TestCommandHandler), commandHandlerType);
+			Assert.AreEqual(typeof(TestCommandHandler), catalogueItem.HandlerType);
 		}
 
 		[Test]
 		public void Build_ForCommandWithNoResult_RetrievesCommandHandler()
 		{
-			var commandHandlerType = Build()
-				.GetCommandHandlerType<NoResultTestCommand>();
+			var catalogueItem = Get()
+				.Single(x => x.CommandType == typeof(NoResultTestCommand));
 
-			Assert.AreEqual(typeof(NoResultTestCommandHandler), commandHandlerType);
+			Assert.AreEqual(typeof(NoResultTestCommandHandler), catalogueItem.HandlerType);
 		}
 
 		[Test]
 		public void Build_ForCommandWithValidator_RetrievesValidator()
 		{
-			var validatorType = Build()
-				.GetValidatorType<TestCommand>();
+			var catalogueItem = Get()
+				.Single(x => x.CommandType == typeof(TestCommand));
 
-			Assert.AreEqual(typeof(TestCommandValidator), validatorType);
+			Assert.AreEqual(typeof(TestCommandValidator), catalogueItem.ValidatorType);
 		}
 
 		[Test]
 		public void Build_ForCommandWithNoValidator_ValidatorIsNull()
 		{
-			var validatorType = Build()
-				.GetValidatorType<NoValidatorTestCommand>();
+			var catalogueItem = Get()
+				.Single(x => x.CommandType == typeof(NoValidatorTestCommand));
 
-			Assert.IsNull(validatorType);
+			Assert.IsNull(catalogueItem.ValidatorType);
 		}
 
-
-
-		private CommandCatalogue Build()
+		private List<CommandCatalogueItem> Get()
 		{
-			return new CommandCatalogueBuilder().Build(GetType().Assembly);
+			return new CommandCatalogueItemsProvider()
+				.Get(GetType().Assembly);
 		}
 	}
 

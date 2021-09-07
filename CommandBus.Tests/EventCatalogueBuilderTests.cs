@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -9,7 +10,10 @@ namespace CommandBus.Tests
 		[Test]
 		public void Build_WhereMultipleClassesImplementsEventSubscriberForEvent_RetrievesAllSubscribers()
 		{
-			var subscribers = Build().GetSubscribers(new Event1());
+			var subscribers = Get()
+				.Where(x => x.EventType == typeof(Event1))
+				.Select(x => x.SubscriberType)
+				.ToList();
 
 			Assert.AreEqual(2, subscribers.Count);
 			Assert.True(subscribers.Contains(typeof(EventSubscriber11)));
@@ -19,18 +23,24 @@ namespace CommandBus.Tests
 		[Test]
 		public void Build_ClassImplementsMultipleEventSubscribers_RetrievesAllSubscribers()
 		{
-			var catalogue = Build();
-			var event2Subscribers = catalogue.GetSubscribers(new Event2());
-			var event3Subscribers = catalogue.GetSubscribers(new Event3());
+			var catalogueItems = Get();
+			var event2Subscribers = catalogueItems
+				.Where(x => x.EventType == typeof(Event2))
+				.Select(x => x.SubscriberType)
+				.ToList();
+			var event3Subscribers = catalogueItems
+				.Where(x => x.EventType == typeof(Event3))
+				.Select(x => x.SubscriberType)
+				.ToList();
 
 			Assert.AreEqual(typeof(MultiEventSubscriber), event2Subscribers.Single());
 			Assert.AreEqual(typeof(MultiEventSubscriber), event3Subscribers.Single());
 		}
 
-		private EventSubscriptionsCatalogue Build()
+		private List<EventSubscriptionsCatalogueItem> Get()
 		{
-			return new EventCatalogueBuilder()
-				.Build(GetType().Assembly);
+			return new EventCatalogueItemsProvider()
+				.Get(GetType().Assembly);
 		}
 	}
 

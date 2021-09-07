@@ -5,22 +5,20 @@ using System.Reflection;
 
 namespace CommandBus
 {
-	internal class CommandCatalogueBuilder
+	internal class CommandCatalogueItemsProvider
 	{
 		private readonly InheritanceTreeProvider _inheritanceTreeProvider;
 
-		public CommandCatalogueBuilder()
+		public CommandCatalogueItemsProvider()
 		{
 			_inheritanceTreeProvider = new InheritanceTreeProvider();
 		}
 
-		public CommandCatalogue Build(params Assembly[] assemblies)
+		public List<CommandCatalogueItem> Get(params Assembly[] assemblies)
 		{
 			var handlerDtos = GetHandlerDtos(assemblies);
 			var validatorDtos = GetValidatorDtos(assemblies);
-			var catalogueItems = GetCatalogueItems(handlerDtos, validatorDtos);
-
-			return new CommandCatalogue(catalogueItems);
+			return GetCatalogueItems(handlerDtos, validatorDtos);
 		}
 
 		private List<CommandCatalogueItem> GetCatalogueItems(List<HandlerDto> handlerDtos, List<ValidatorDto> validatorDtos)

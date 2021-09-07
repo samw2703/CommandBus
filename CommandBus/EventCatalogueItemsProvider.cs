@@ -5,15 +5,14 @@ using System.Reflection;
 
 namespace CommandBus
 {
-	internal class EventCatalogueBuilder
+	internal class EventCatalogueItemsProvider
 	{
-		public EventSubscriptionsCatalogue Build(params Assembly[] assemblies)
+		public List<EventSubscriptionsCatalogueItem> Get(params Assembly[] assemblies)
 		{
-			var catalogueItems = assemblies
+			return assemblies
 				.SelectMany(x => x.GetTypes())
 				.SelectMany(GetCatalogueItems)
 				.ToList();
-			return new EventSubscriptionsCatalogue(catalogueItems);
 		}
 
 		private IEnumerable<EventSubscriptionsCatalogueItem> GetCatalogueItems(Type type)
