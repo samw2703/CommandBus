@@ -18,8 +18,8 @@ namespace CommandBus.Tests
 		public void Setup()
 		{
 			_events = new StubbedEventPublisher();
-			_handler = new TestCommandHandler();
 			_serviceProvider = CreateServiceProvider();
+			_handler = _serviceProvider.GetService<TestCommandHandler>();
 		}
 
 		[Test]
@@ -32,7 +32,7 @@ namespace CommandBus.Tests
 		[Test]
 		public async Task Execute_NoValidatorIsRegistered_HandlesCommand()
 		{
-			var result = await Execute(new TestCommand(), _handler);
+			var result = await Execute<TestCommand, TestCommandResult>(new TestCommand());
 
 			Assert.False(result.IsInvalid);
 			Assert.True(_handler.Ran);
@@ -42,7 +42,7 @@ namespace CommandBus.Tests
 		[Test]
 		public async Task Execute_ValidatorIsRegisteredButCommandIsValid_ValidatorIsRunAndHandlesCommand()
 		{
-			var result = await Execute(new TestCommand(), _handler, typeof(TestCommandValidator));
+			var result = await Execute<TestCommand, TestCommandResult>(new TestCommand(), validatorType: typeof(TestCommandValidator));
 
 			Assert.False(result.IsInvalid);
 			Assert.True(_handler.Ran);
@@ -53,7 +53,7 @@ namespace CommandBus.Tests
 		[Test]
 		public async Task Execute_ValidatorIsRegisteredAndCommandIsInvalid_ValidatorIsRunAndReturnsValidationResult()
 		{
-			var result = await Execute(new TestCommand(true), _handler, typeof(TestCommandValidator));
+			var result = await Execute<TestCommand, TestCommandResult>(new TestCommand(true), validatorType: typeof(TestCommandValidator));
 
 			Assert.True(result.IsInvalid);
 			Assert.False(_handler.Ran);
@@ -65,20 +65,29 @@ namespace CommandBus.Tests
 		[Test]
 		public async Task Execute_NoValidationErrors_EventsArePublished()
 		{
-			await Execute(new TestCommand(), _handler);
+			await Execute<TestCommand, TestCommandResult>(new TestCommand());
 
 			_events.CountEquals(3);
 			_events.Contains(typeof(TestEvent1), 2);
 			_events.Contains(typeof(TestEvent2));
 		}
 
+		[Test]
+		public async Task Execute_HandlerForGivenCommandDoesNotReturnExpectedCommandResult_ThrowsCommandMismatchBeforeValidationIsExecuted()
+		{
+			Assert.ThrowsAsync<CommandResultMismatch<TestCommand, NoCommandResult>>(async () =>
+				await Execute<TestCommand, NoCommandResult>(new TestCommand(), validatorType: typeof(TestCommandValidator)));
+
+			Assert.False(_serviceProvider.GetService<TestCommandValidator>().Ran);
+		}
+
 		private async Task<CommandBusResult<TCommandResult>> Execute<TCommand, TCommandResult>(TCommand command,
-			CommandHandler<TCommand, TCommandResult> handler,
+			Type handlerType = null,
 			Type validatorType = null,
 			bool commandExists = true )
 			where TCommandResult : class
 		{
-			var commandBus = new CommandBus(_events, MockCommandCatalogue(handler, validatorType, commandExists), _serviceProvider);
+			var commandBus = new CommandBus(_events, MockCommandCatalogue<TCommand>(handlerType ?? _handler.GetType(), validatorType, commandExists), _serviceProvider);
 			return await commandBus.Execute<TCommand, TCommandResult>(command);
 		}
 
@@ -90,16 +99,16 @@ namespace CommandBus.Tests
 			return serviceCollection.BuildServiceProvider();
 		}
 
-		private ICommandCatalogue MockCommandCatalogue<TCommand, TCommandResult>(CommandHandler<TCommand, TCommandResult> handler, Type validatorType, bool commandExists)
+		private ICommandCatalogue MockCommandCatalogue<TCommand>(Type handlerType, Type validatorType, bool commandExists)
 		{
 			var mock = new Mock<ICommandCatalogue>();
 			mock.Setup(x => x.CommandExists<TCommand>()).Returns(commandExists);
 			mock
-				.Setup(x => x.GetValidatorType<TCommand, TCommandResult>())
+				.Setup(x => x.GetValidatorType<TCommand>())
 				.Returns(validatorType);
 			mock
-				.Setup(x => x.GetCommandHandler<TCommand, TCommandResult>())
-				.Returns(handler);
+				.Setup(x => x.GetCommandHandlerType<TCommand>())
+				.Returns(handlerType);
 
 			return mock.Object;
 		}

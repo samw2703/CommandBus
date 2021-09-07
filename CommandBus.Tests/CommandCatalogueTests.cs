@@ -12,7 +12,7 @@ namespace CommandBus.Tests
 		{
 			var items = new List<CommandCatalogueItem>
 			{
-				new CommandWithResultCatalogueItem<TestCommand, NoCommandResult>(typeof(TestCommand), null, new NoResultTestCommandHandler())
+				new(typeof(TestCommand), null, typeof(NoResultTestCommandHandler))
 			};
 
 			Assert.True(CommandExists<TestCommand>(items));
@@ -27,7 +27,7 @@ namespace CommandBus.Tests
 		[Test]
 		public void GetValidator_ItemDoesNotExistForCommand_ThrowsNoCommandException()
 		{
-			Assert.Throws<NoCommandRegistered<TestCommand>>(() => GetValidatorType<TestCommand, NoCommandResult>());
+			Assert.Throws<NoCommandRegistered<TestCommand>>(() => GetValidatorType<TestCommand>());
 		}
 
 		[Test]
@@ -35,10 +35,10 @@ namespace CommandBus.Tests
 		{
 			var items = new List<CommandCatalogueItem>
 			{
-				new CommandWithResultCatalogueItem<TestCommand, NoCommandResult>(typeof(TestCommand), null, new NoResultTestCommandHandler()),
-				new CommandWithResultCatalogueItem<TestCommand, NoCommandResult>(typeof(TestCommand), null, new NoResultTestCommandHandler())
+				new (typeof(TestCommand), null, typeof(NoResultTestCommandHandler)),
+				new (typeof(TestCommand), null, typeof(NoResultTestCommandHandler))
 			};
-			Assert.Throws<MutlipleCommandsRegistered<TestCommand>>(() => GetValidatorType<TestCommand, NoCommandResult>(items));
+			Assert.Throws<MutlipleCommandsRegistered<TestCommand>>(() => GetValidatorType<TestCommand>(items));
 		}
 
 		[Test]
@@ -46,9 +46,9 @@ namespace CommandBus.Tests
 		{
 			var items = new List<CommandCatalogueItem>
 			{
-				new CommandWithResultCatalogueItem<TestCommand, NoCommandResult>(typeof(TestCommand), null, new NoResultTestCommandHandler())
+				new (typeof(TestCommand), null, typeof(NoResultTestCommandHandler))
 			};
-			var validatorType = GetValidatorType<TestCommand, NoCommandResult>(items);
+			var validatorType = GetValidatorType<TestCommand>(items);
 
 			Assert.IsNull(validatorType);
 		}
@@ -58,27 +58,17 @@ namespace CommandBus.Tests
 		{
 			var items = new List<CommandCatalogueItem>
 			{
-				new CommandWithResultCatalogueItem<TestCommand, NoCommandResult>(typeof(TestCommand), typeof(TestCommandValidator), new NoResultTestCommandHandler())
+				new (typeof(TestCommand), typeof(TestCommandValidator), typeof(NoResultTestCommandHandler))
 			};
-			var validator = GetValidatorType<TestCommand, NoCommandResult>(items);
+			var validator = GetValidatorType<TestCommand>(items);
 
 			Assert.AreEqual(typeof(TestCommandValidator), validator);
 		}
 
 		[Test]
-		public void GetValidator_SingleItemExistsForCommandButCommandHandlerDoesNotReturnSpecifiedCommandResult_ThrowsCommandResultMismatchException()
-		{
-			var items = new List<CommandCatalogueItem>
-			{
-				new CommandWithResultCatalogueItem<TestCommand, NoCommandResult>(typeof(TestCommand), null, new NoResultTestCommandHandler()),
-			};
-			Assert.Throws<CommandResultMismatch<TestCommand, TestCommandResult>>(() => GetValidatorType<TestCommand, TestCommandResult>(items));
-		}
-
-		[Test]
 		public void GetCommandHandler_ItemDoesNotExistForCommand_ThrowsNoCommandException()
 		{
-			Assert.Throws<NoCommandRegistered<TestCommand>>(() => GetCommandHandler<TestCommand, NoCommandResult>());
+			Assert.Throws<NoCommandRegistered<TestCommand>>(() => GetCommandHandler<TestCommand>());
 		}
 
 		[Test]
@@ -86,20 +76,10 @@ namespace CommandBus.Tests
 		{
 			var items = new List<CommandCatalogueItem>
 			{
-				new CommandWithResultCatalogueItem<TestCommand, NoCommandResult>(typeof(TestCommand), null, new NoResultTestCommandHandler()),
-				new CommandWithResultCatalogueItem<TestCommand, NoCommandResult>(typeof(TestCommand), null, new NoResultTestCommandHandler())
+				new (typeof(TestCommand), null, typeof(NoResultTestCommandHandler)),
+				new (typeof(TestCommand), null, typeof(NoResultTestCommandHandler))
 			};
-			Assert.Throws<MutlipleCommandsRegistered<TestCommand>>(() => GetCommandHandler<TestCommand, NoCommandResult>(items));
-		}
-
-		[Test]
-		public void GetCommandHandler_SingleItemExistsForCommandButCommandHandlerDoesNotReturnSpecifiedCommandResult_ThrowsCommandResultMismatchException()
-		{
-			var items = new List<CommandCatalogueItem>
-			{
-				new CommandWithResultCatalogueItem<TestCommand, NoCommandResult>(typeof(TestCommand), null, new NoResultTestCommandHandler()),
-			};
-			Assert.Throws<CommandResultMismatch<TestCommand, TestCommandResult>>(() => GetCommandHandler<TestCommand, TestCommandResult>(items));
+			Assert.Throws<MutlipleCommandsRegistered<TestCommand>>(() => GetCommandHandler<TestCommand>(items));
 		}
 
 		[Test]
@@ -107,11 +87,11 @@ namespace CommandBus.Tests
 		{
 			var items = new List<CommandCatalogueItem>
 			{
-				new CommandWithResultCatalogueItem<TestCommand, NoCommandResult>(typeof(TestCommand), null, new NoResultTestCommandHandler()),
+				new (typeof(TestCommand), null, typeof(NoResultTestCommandHandler)),
 			};
-			var commandHandler =  GetCommandHandler<TestCommand, NoCommandResult>(items);
+			var commandHandler =  GetCommandHandler<TestCommand>(items);
 
-			Assert.AreEqual(typeof(NoResultTestCommandHandler), commandHandler.GetType());
+			Assert.AreEqual(typeof(NoResultTestCommandHandler), commandHandler);
 		}
 
 		private bool CommandExists<TCommand>(List<CommandCatalogueItem> items = null)
@@ -120,16 +100,16 @@ namespace CommandBus.Tests
 				.CommandExists<TCommand>();
 		}
 
-		private Type GetValidatorType<TCommand, TCommandResult>(List<CommandCatalogueItem> items = null)
+		private Type GetValidatorType<TCommand>(List<CommandCatalogueItem> items = null)
 		{
 			return new CommandCatalogue(items ?? new List<CommandCatalogueItem>())
-				.GetValidatorType<TCommand, TCommandResult>();
+				.GetValidatorType<TCommand>();
 		}
 
-		private CommandHandler<TCommand, TCommandResult> GetCommandHandler<TCommand, TCommandResult>(List<CommandCatalogueItem> items = null)
+		private Type GetCommandHandler<TCommand>(List<CommandCatalogueItem> items = null)
 		{
 			return new CommandCatalogue(items ?? new List<CommandCatalogueItem>())
-				.GetCommandHandler<TCommand, TCommandResult>();
+				.GetCommandHandlerType<TCommand>();
 		}
 
 		private class TestCommand

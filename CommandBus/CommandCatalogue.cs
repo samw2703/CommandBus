@@ -16,13 +16,14 @@ namespace CommandBus
 		public bool CommandExists<TCommand>()
 			=> _items.Any(x => x.CommandType == typeof(TCommand));
 
-		public Type GetValidatorType<TCommand, TCommandResult>()
-			=> GetItem<TCommand, TCommandResult>().ValidatorType;
+		public Type GetValidatorType<TCommand>()
+			=> GetItem<TCommand>().ValidatorType;
 
-		public CommandHandler<TCommand, TCommandResult> GetCommandHandler<TCommand, TCommandResult>()
-			=> GetItem<TCommand, TCommandResult>().CommandHandler;
+		public Type GetCommandHandlerType<TCommand>()
+			=> GetItem<TCommand>()
+				.HandlerType;
 
-		private CommandWithResultCatalogueItem<TCommand, TCommandResult> GetItem<TCommand, TCommandResult>()
+		private CommandCatalogueItem GetItem<TCommand>()
 		{
 			var items = _items.Where(x => x.CommandType == typeof(TCommand)).ToList();
 
@@ -32,11 +33,7 @@ namespace CommandBus
 			if (items.None())
 				throw new NoCommandRegistered<TCommand>();
 
-			var item = items.Single() as CommandWithResultCatalogueItem<TCommand, TCommandResult>;
-			if (item == null)
-				throw new CommandResultMismatch<TCommand, TCommandResult>();
-
-			return item;
+			return items.Single();
 		}
 	}
 }

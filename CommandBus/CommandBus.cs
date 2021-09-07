@@ -21,13 +21,19 @@ namespace CommandBus
 		{
 			if (!_commandCatalogue.CommandExists<TCommand>())
 				throw new NoCommandRegistered<TCommand>();
-			var validationResult = await Validate<TCommand, TCommandResult>(command);
+			ValidateCommandHandlerProperlyConfigured<TCommand, TCommandResult>();
+			var validationResult = await Validate(command);
 			if (validationResult.Invalid)
 				return CommandBusResult<TCommandResult>.AsValidationResult(validationResult);
 
 			var commandResult = await HandleAndRaiseEvents<TCommand, TCommandResult>(command);
 
 			return CommandBusResult<TCommandResult>.AsCommandResult(commandResult);
+		}
+
+		private void ValidateCommandHandlerProperlyConfigured<TCommand, TCommandResult>() where TCommandResult : class
+		{
+			GetCommandHandler<TCommand, TCommandResult>();
 		}
 
 		public async Task<CommandBusResult<NoCommandResult>> Execute<TCommand>(TCommand command)
@@ -42,18 +48,18 @@ namespace CommandBus
 			return commandResult;
 		}
 
-		private async Task<ValidationResult> Validate<TCommand, TCommandResult>(TCommand command)
+		private async Task<ValidationResult> Validate<TCommand>(TCommand command)
 		{
-			var validator = GetValidator<TCommand, TCommandResult>();
+			var validator = GetValidator<TCommand>();
 
 			return validator == null
 				? ValidationResult.Success()
 				: await validator.DoValidation(command);
 		}
 
-		private Validator<TCommand> GetValidator<TCommand, TCommandResult>()
+		private Validator<TCommand> GetValidator<TCommand>()
 		{
-			var validatorType = _commandCatalogue.GetValidatorType<TCommand, TCommandResult>();
+			var validatorType = _commandCatalogue.GetValidatorType<TCommand>();
 			if (validatorType == null)
 				return null;
 
@@ -67,6 +73,13 @@ namespace CommandBus
 		}
 
 		private CommandHandler<TCommand, TCommandResult> GetCommandHandler<TCommand, TCommandResult>()
-			=> _commandCatalogue.GetCommandHandler<TCommand, TCommandResult>();
+		{
+			var type = _commandCatalogue.GetCommandHandlerType<TCommand>();
+			var service = _serviceProvider.GetService(type) as CommandHandler<TCommand, TCommandResult>;
+			if (service == null)
+				throw new CommandResultMismatch<TCommand, TCommandResult>();
+
+			return service;
+		}
 	}
 }
