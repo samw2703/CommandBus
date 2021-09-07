@@ -38,7 +38,7 @@ namespace CommandBus.Tests
 				new (typeof(TestCommand), null, typeof(NoResultTestCommandHandler)),
 				new (typeof(TestCommand), null, typeof(NoResultTestCommandHandler))
 			};
-			Assert.Throws<MutlipleCommandsRegistered<TestCommand>>(() => GetValidatorType<TestCommand>(items));
+			Assert.Throws<MutlipleCommandHandlersRegistered>(() => GetValidatorType<TestCommand>(items));
 		}
 
 		[Test]
@@ -79,7 +79,7 @@ namespace CommandBus.Tests
 				new (typeof(TestCommand), null, typeof(NoResultTestCommandHandler)),
 				new (typeof(TestCommand), null, typeof(NoResultTestCommandHandler))
 			};
-			Assert.Throws<MutlipleCommandsRegistered<TestCommand>>(() => GetCommandHandler<TestCommand>(items));
+			Assert.Throws<MutlipleCommandHandlersRegistered>(() => GetCommandHandler<TestCommand>(items));
 		}
 
 		[Test]

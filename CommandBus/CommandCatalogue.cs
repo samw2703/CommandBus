@@ -28,7 +28,7 @@ namespace CommandBus
 			var items = _items.Where(x => x.CommandType == typeof(TCommand)).ToList();
 
 			if (items.Count > 1)
-				throw new MutlipleCommandsRegistered<TCommand>();
+				throw new MutlipleCommandHandlersRegistered(typeof(TCommand));
 
 			if (items.None())
 				throw new NoCommandRegistered<TCommand>();
