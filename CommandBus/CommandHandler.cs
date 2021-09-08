@@ -15,7 +15,7 @@ namespace CommandBus
 			=> QueuedEvents.Clear();
 	}
 
-	public abstract class NoResultCommandHandler<TCommand> : CommandHandler<TCommand, NoCommandResult>
+	public abstract class CommandHandler<TCommand> : CommandHandler<TCommand, NoCommandResult>
 	{
 		public override async Task<NoCommandResult> HandleAndGetResult(TCommand command)
 		{

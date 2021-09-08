@@ -80,7 +80,7 @@ namespace CommandBus.Tests
 	{
 	}
 
-	internal class NoResultTestCommandHandler : NoResultCommandHandler<NoResultTestCommand>
+	internal class NoResultTestCommandHandler : CommandHandler<NoResultTestCommand>
 	{
 		public override Task Handle(NoResultTestCommand command)
 		{
@@ -100,7 +100,7 @@ namespace CommandBus.Tests
 	{
 	}
 
-	internal class NoValidatorTestCommandHandler : NoResultCommandHandler<NoValidatorTestCommand>
+	internal class NoValidatorTestCommandHandler : CommandHandler<NoValidatorTestCommand>
 	{
 		public override Task Handle(NoValidatorTestCommand command)
 		{

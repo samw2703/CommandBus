@@ -124,7 +124,7 @@ namespace CommandBus.Tests
 			}
 		}
 
-		private class NoResultTestCommandHandler : NoResultCommandHandler<TestCommand>
+		private class NoResultTestCommandHandler : CommandHandler<TestCommand>
 		{
 			public override Task Handle(TestCommand command)
 			{
