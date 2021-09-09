@@ -26,9 +26,7 @@ namespace CommandBus
 			if (validationResult.Invalid)
 				return CommandBusResult<TCommandResult>.AsValidationResult(validationResult);
 
-			var commandResult = await HandleAndRaiseEvents<TCommand, TCommandResult>(command);
-
-			return CommandBusResult<TCommandResult>.AsCommandResult(commandResult);
+			return await HandleAndRaiseEvents<TCommand, TCommandResult>(command);
 		}
 
 		private void ValidateCommandHandlerProperlyConfigured<TCommand, TCommandResult>() where TCommandResult : class
@@ -39,13 +37,23 @@ namespace CommandBus
 		public async Task<CommandBusResult<NoCommandResult>> Execute<TCommand>(TCommand command)
 			=> await Execute<TCommand, NoCommandResult>(command);
 
-		private async Task<TCommandResult> HandleAndRaiseEvents<TCommand, TCommandResult>(TCommand command)
+		private async Task<CommandBusResult<TCommandResult>> HandleAndRaiseEvents<TCommand, TCommandResult>(TCommand command)
+			where TCommandResult : class
 		{
+			TCommandResult commandResult;
 			var commandHandler = GetCommandHandler<TCommand, TCommandResult>();
-			var commandResult = await commandHandler.HandleAndGetResult(command);
+			try
+			{
+				commandResult = await commandHandler.HandleAndGetResult(command);
+			}
+			catch (CommandHandlerException e)
+			{
+				return CommandBusResult<TCommandResult>.AsValidationResult(ValidationResult.Fail(e.Errors));
+			}
+
 			RaiseAndFlushEvents(commandHandler);
 
-			return commandResult;
+			return CommandBusResult<TCommandResult>.AsCommandResult(commandResult);
 		}
 
 		private async Task<ValidationResult> Validate<TCommand>(TCommand command)

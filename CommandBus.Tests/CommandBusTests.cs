@@ -81,6 +81,16 @@ namespace CommandBus.Tests
 			Assert.False(_serviceProvider.GetService<TestCommandValidator>().Ran);
 		}
 
+		[Test]
+		public async Task Execute_HandlerForGivenCommandThrowsCommandExecutionException_ReturnsValidationResultWithErrorsNoEventsRaised()
+		{
+			var result = await Execute<TestCommand, TestCommandResult>(new TestCommand(handlerThrows: true));
+
+			Assert.True(result.IsInvalid);
+			Assert.AreEqual("I am an error", result.AsValidationResult().Errors.Single());
+			Assert.False(_events.Any());
+		}
+
 		private async Task<CommandBusResult<TCommandResult>> Execute<TCommand, TCommandResult>(TCommand command,
 			Type handlerType = null,
 			Type validatorType = null,
@@ -125,15 +135,19 @@ namespace CommandBus.Tests
 
 			public bool Contains(Type expectedObjectType, int times = 1)
 				=> _events.Count(x => x.GetType() == expectedObjectType) == times;
+
+			public bool Any() => _events.Any();
 		}
 
 		private class TestCommand
 		{
 			public bool Invalid { get; }
+			public bool HandlerThrows { get; }
 
-			public TestCommand(bool invalid = false)
+			public TestCommand(bool invalid = false, bool handlerThrows = false)
 			{
 				Invalid = invalid;
+				HandlerThrows = handlerThrows;
 			}
 		}
 
@@ -152,6 +166,9 @@ namespace CommandBus.Tests
 				EnqueueEvent(new TestEvent1());
 				EnqueueEvent(new TestEvent1());
 				EnqueueEvent(new TestEvent2());
+
+				if (command.HandlerThrows)
+					throw new CommandHandlerException(new List<string> { "I am an error" });
 
 				return Task.FromResult(new TestCommandResult());
 			}

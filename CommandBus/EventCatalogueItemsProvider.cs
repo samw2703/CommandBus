@@ -21,7 +21,6 @@ namespace CommandBus
 					.GetInterfaces()
 					.Where(x => x.IsGenericType && !x.IsNested && x.GetGenericTypeDefinition() == typeof(IEventSubscriber<object>).GetGenericTypeDefinition())
 					.Select(x => new EventSubscriptionsCatalogueItem(x.GetGenericArguments().First(), type));
-
 		}
 	}
 }
