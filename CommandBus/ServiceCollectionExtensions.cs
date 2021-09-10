@@ -1,15 +1,20 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CommandBus
 {
 	public static class ServiceCollectionExtensions
 	{
-		public static void AddCommandBus(this IServiceCollection serviceCollection, params Assembly[] assemblies)
+		public static void AddCommandBus(this IServiceCollection serviceCollection, Assembly assembly, params Assembly[] otherAssemblies)
 		{
 			serviceCollection.AddSingleton(new Config(false));
 			serviceCollection.AddScoped<IEventPublisher, EventPublisher>();
 			serviceCollection.AddScoped<ICommandBus, CommandBus>();
+			var assemblies = new List<Assembly> {assembly}
+				.WithRange(otherAssemblies)
+				.ToArray();
 			AddCommandCatalogueServices(serviceCollection, assemblies);
 			AddEventCatalogueServices(serviceCollection, assemblies);
 		}
