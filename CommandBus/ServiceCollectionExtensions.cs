@@ -8,8 +8,8 @@ namespace CommandBus
 		public static void AddCommandBus(this IServiceCollection serviceCollection, params Assembly[] assemblies)
 		{
 			serviceCollection.AddSingleton(new Config(false));
-			serviceCollection.AddSingleton<IEventPublisher, EventPublisher>();
-			serviceCollection.AddSingleton<ICommandBus, CommandBus>();
+			serviceCollection.AddScoped<IEventPublisher, EventPublisher>();
+			serviceCollection.AddScoped<ICommandBus, CommandBus>();
 			AddCommandCatalogueServices(serviceCollection, assemblies);
 			AddEventCatalogueServices(serviceCollection, assemblies);
 		}
