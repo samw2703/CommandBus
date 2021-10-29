@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace CommandBus
@@ -29,7 +31,7 @@ namespace CommandBus
 		private async Task ExecuteSubscriber(Type subscriberType, object @event)
 		{
 			var service = _serviceProvider.GetService(subscriberType);
-			var method = subscriberType.GetMethod(nameof(IEventSubscriber<object>.Execute));
+			var method = subscriberType.GetMethods().Single(x => IsExecuteMethodForEventType(x, @event.GetType()));
 			if (_config.PublishSynchronously)
 			{
 				await (Task) method.Invoke(service, new[] {@event});
@@ -38,5 +40,8 @@ namespace CommandBus
 
 			method.Invoke(service, new[] { @event });
 		}
+
+		private bool IsExecuteMethodForEventType(MethodInfo methodInfo, Type eventType)
+			=> methodInfo.Name == nameof(IEventSubscriber<object>.Execute) && methodInfo.GetParameters().Single().ParameterType == eventType;
 	}
 }
