@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace CommandBus
 {
@@ -10,13 +10,20 @@ namespace CommandBus
 		public static void AddCommandBus(this IServiceCollection serviceCollection, Assembly assembly, params Assembly[] otherAssemblies)
 		{
 			serviceCollection.AddSingleton(new Config(false));
-			serviceCollection.AddScoped<IEventPublisher, EventPublisher>();
+			serviceCollection.TryAddScoped<IEventPublisher, EventPublisher>();
 			serviceCollection.AddScoped<ICommandBus, CommandBus>();
 			var assemblies = new List<Assembly> {assembly}
 				.WithRange(otherAssemblies)
 				.ToArray();
 			AddCommandCatalogueServices(serviceCollection, assemblies);
 			AddEventCatalogueServices(serviceCollection, assemblies);
+		}
+
+		public static void AddCommandBus<TEventPublisher>(this IServiceCollection serviceCollection, Assembly assembly, params Assembly[] otherAssemblies)
+			where TEventPublisher : class, IEventPublisher
+		{
+			serviceCollection.AddScoped<IEventPublisher, TEventPublisher>();
+			serviceCollection.AddCommandBus(assembly, otherAssemblies);
 		}
 
 		private static void AddEventCatalogueServices(IServiceCollection serviceCollection, Assembly[] assemblies)

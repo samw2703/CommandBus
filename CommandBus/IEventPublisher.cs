@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace CommandBus
 {
-	internal interface IEventPublisher
+	public interface IEventPublisher
 	{
 		Task Publish(List<object> @events);
 	}
