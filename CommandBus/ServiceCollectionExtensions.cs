@@ -9,21 +9,33 @@ namespace CommandBus
 	{
 		public static void AddCommandBus(this IServiceCollection serviceCollection, Assembly assembly, params Assembly[] otherAssemblies)
 		{
-			serviceCollection.AddSingleton(new Config(false));
-			serviceCollection.TryAddScoped<IEventPublisher, EventPublisher>();
+            serviceCollection.TryAddScoped<IEventPublisher, EventPublisher>();
 			serviceCollection.AddScoped<ICommandBus, CommandBus>();
-			var assemblies = new List<Assembly> {assembly}
-				.WithRange(otherAssemblies)
-				.ToArray();
-			AddCommandCatalogueServices(serviceCollection, assemblies);
-			AddEventCatalogueServices(serviceCollection, assemblies);
+			serviceCollection.AddCatalogues(assembly, otherAssemblies);
 		}
 
-		public static void AddCommandBus<TEventPublisher>(this IServiceCollection serviceCollection, Assembly assembly, params Assembly[] otherAssemblies)
+        public static void AddCommandBusSingleton(this IServiceCollection serviceCollection, Assembly assembly, params Assembly[] otherAssemblies)
+        {
+            serviceCollection.TryAddSingleton<IEventPublisher, EventPublisher>();
+            serviceCollection.AddSingleton<ICommandBus, CommandBus>();
+            serviceCollection.AddCatalogues(assembly, otherAssemblies);
+        }
+
+        public static void AddCommandBus<TEventPublisher>(this IServiceCollection serviceCollection, Assembly assembly, params Assembly[] otherAssemblies)
 			where TEventPublisher : class, IEventPublisher
 		{
 			serviceCollection.AddScoped<IEventPublisher, TEventPublisher>();
 			serviceCollection.AddCommandBus(assembly, otherAssemblies);
+		}
+
+        private static void AddCatalogues(this IServiceCollection serviceCollection, Assembly assembly, params Assembly[] otherAssemblies)
+        {
+            serviceCollection.AddSingleton(new Config(false));
+            var assemblies = new List<Assembly> { assembly }
+                .WithRange(otherAssemblies)
+                .ToArray();
+            AddCommandCatalogueServices(serviceCollection, assemblies);
+            AddEventCatalogueServices(serviceCollection, assemblies);
 		}
 
 		private static void AddEventCatalogueServices(IServiceCollection serviceCollection, Assembly[] assemblies)
