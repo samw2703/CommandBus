@@ -11,14 +11,24 @@ namespace CommandBus
 		{
             serviceCollection.TryAddScoped<IEventPublisher, EventPublisher>();
 			serviceCollection.AddScoped<ICommandBus, CommandBus>();
-			serviceCollection.AddCatalogues(assembly, otherAssemblies);
+            serviceCollection.AddSingleton(new Config(false));
+            var assemblies = new List<Assembly> { assembly }
+                .WithRange(otherAssemblies)
+                .ToArray();
+            AddCommandCatalogueServices(serviceCollection, assemblies);
+            AddEventCatalogueServices(serviceCollection, assemblies);
 		}
 
         public static void AddCommandBusSingleton(this IServiceCollection serviceCollection, Assembly assembly, params Assembly[] otherAssemblies)
         {
             serviceCollection.TryAddSingleton<IEventPublisher, EventPublisher>();
             serviceCollection.AddSingleton<ICommandBus, CommandBus>();
-            serviceCollection.AddCatalogues(assembly, otherAssemblies);
+			serviceCollection.AddSingleton(new Config(false));
+            var assemblies = new List<Assembly> { assembly }
+                .WithRange(otherAssemblies)
+                .ToArray();
+            AddSingletonCommandCatalogueServices(serviceCollection, assemblies);
+            AddSingletonEventCatalogueServices(serviceCollection, assemblies);
         }
 
         public static void AddCommandBus<TEventPublisher>(this IServiceCollection serviceCollection, Assembly assembly, params Assembly[] otherAssemblies)
@@ -28,17 +38,7 @@ namespace CommandBus
 			serviceCollection.AddCommandBus(assembly, otherAssemblies);
 		}
 
-        private static void AddCatalogues(this IServiceCollection serviceCollection, Assembly assembly, params Assembly[] otherAssemblies)
-        {
-            serviceCollection.AddSingleton(new Config(false));
-            var assemblies = new List<Assembly> { assembly }
-                .WithRange(otherAssemblies)
-                .ToArray();
-            AddCommandCatalogueServices(serviceCollection, assemblies);
-            AddEventCatalogueServices(serviceCollection, assemblies);
-		}
-
-		private static void AddEventCatalogueServices(IServiceCollection serviceCollection, Assembly[] assemblies)
+        private static void AddEventCatalogueServices(IServiceCollection serviceCollection, Assembly[] assemblies)
 		{
 			var catalogueItems = new EventCatalogueItemsProvider().Get(assemblies);
 			foreach (var catalogueItem in catalogueItems)
@@ -60,5 +60,28 @@ namespace CommandBus
 
 			serviceCollection.AddSingleton<ICommandCatalogue>(new CommandCatalogue(catalogueItems));
 		}
+
+        private static void AddSingletonEventCatalogueServices(IServiceCollection serviceCollection, Assembly[] assemblies)
+        {
+            var catalogueItems = new EventCatalogueItemsProvider().Get(assemblies);
+            foreach (var catalogueItem in catalogueItems)
+                serviceCollection.AddSingleton(catalogueItem.SubscriberType);
+
+            serviceCollection.AddSingleton(new EventSubscriptionsCatalogue(catalogueItems));
+        }
+
+        private static void AddSingletonCommandCatalogueServices(IServiceCollection serviceCollection, Assembly[] assemblies)
+        {
+            var catalogueItems = new CommandCatalogueItemsProvider().Get(assemblies);
+            foreach (var catalogueItem in catalogueItems)
+            {
+                serviceCollection.AddSingleton(catalogueItem.HandlerType);
+
+                if (catalogueItem.ValidatorType != null)
+                    serviceCollection.AddSingleton(catalogueItem.ValidatorType);
+            }
+
+            serviceCollection.AddSingleton<ICommandCatalogue>(new CommandCatalogue(catalogueItems));
+        }
 	}
 }
