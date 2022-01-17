@@ -9,6 +9,8 @@ namespace CommandBus
 		{
 			var inheritanceTree = new List<Type>();
 			var baseType = type.BaseType;
+            if (baseType == null)
+                return inheritanceTree;
 			while (true)
 			{
 				if (baseType == typeof(object))
